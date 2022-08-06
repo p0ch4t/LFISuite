@@ -12,7 +12,12 @@ import re
 import sys
 import urllib.request, urllib.parse, urllib.error
 import subprocess
+import numpy
+import threading
 
+def split(lista, nro_partes):
+	nueva_lista = numpy.array_split(lista, nro_partes)
+	return nueva_lista	
 
 def download(file_url, local_filename):
 	web_file = urllib.request.urlopen(file_url)
@@ -1762,33 +1767,9 @@ def run_self_fd():
 # ----------------------------------------------------------------------------------------------------------------------------------------#
 
 # ---------------------------------------------------------------LFI Scanner--------------------------------------------------------------#
-def scanner():
-	global ahactive
-	global ahpaths
-	global ahlogs
-	global ahenv
-	global ahfd
-	global ahgen
-	global ahcnf
-
-	print(colored("\n.:: LFI Scanner ::.\n", "white"))
-	fname = input("[*] Enter the name of the file containing the paths to test [default: 'pathtotest.txt'] -> ")
-	if (len(fname) == 0):
-		fname = "pathtotest.txt"
-	fname = checkFilename(fname)
-
-	if (ahactive is False):
-		owebsite = input("[*] Enter the URL to scan (ex: 'http://site/vuln.php?id=') -> ")
-		owebsite = correctUrl(owebsite)
-		owebsite = checkHttp(owebsite)
-	else:
-		owebsite = ahurl
-
-	print("")
-	file1 = open(fname, 'r')
+def execute_scanner(owebsite, file1):
 	for line in file1:
-		c = line.strip('\n')
-		website = owebsite + c
+		website = owebsite + line
 		status_code = 500
 
 		try:
@@ -1840,6 +1821,44 @@ def scanner():
 		else:
 			print("[!] Problem connecting to the website.\n")
 
+def scanner():
+	global ahactive
+	global ahpaths
+	global ahlogs
+	global ahenv
+	global ahfd
+	global ahgen
+	global ahcnf
+
+	print(colored("\n.:: LFI Scanner ::.\n", "white"))
+	fname = input("[*] Enter the name of the file containing the paths to test [default: 'pathtotest.txt'] -> ")
+	if (len(fname) == 0):
+		fname = "pathtotest.txt"
+	fname = checkFilename(fname)
+
+	if (ahactive is False):
+		owebsite = input("[*] Enter the URL to scan (ex: 'http://site/vuln.php?id=') -> ")
+		owebsite = correctUrl(owebsite)
+		owebsite = checkHttp(owebsite)
+	else:
+		owebsite = ahurl
+
+	file1 = open(fname, 'r')
+	archivo1 = file1.read().splitlines()
+
+	amount_threads = int(input("[*] Threads (r/second): "))
+	lista_payloads = numpy.array_split(archivo1, amount_threads)
+
+	threads = []
+
+	for i in range(amount_threads):
+		t = threading.Thread(target=execute_scanner, args=(owebsite,lista_payloads[i],))
+		threads.append(t)
+	for x in threads:
+		x.start()
+	for x in threads:
+		x.join()	
+
 	print(colored("\n[+] Retrieved %s interesting paths.\n" % len(ahpaths), "white"))
 	time.sleep(0.5)
 
@@ -1847,8 +1866,7 @@ def scanner():
 	showInterestingPath("/proc/self/environ", ahenv)
 	showInterestingPath("/proc/self/fd", ahfd)
 	showInterestingPath("Configuration", ahcnf)
-	showInterestingPath("Generic", ahgen)
-
+	showInterestingPath("Generic", ahgen)	
 
 # ----------------------------------------------------------------------------------------------------------------------------------------#
 
