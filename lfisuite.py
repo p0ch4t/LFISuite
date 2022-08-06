@@ -15,10 +15,6 @@ import subprocess
 import numpy
 import threading
 
-def split(lista, nro_partes):
-	nueva_lista = numpy.array_split(lista, nro_partes)
-	return nueva_lista	
-
 def download(file_url, local_filename):
 	web_file = urllib.request.urlopen(file_url)
 	local_file = open(local_filename, 'w')
@@ -1800,7 +1796,9 @@ def execute_scanner(owebsite, file1):
 						 or (b"State: R (running)" in content and (
 									b"Tgid:" in content or b"TracerPid:" in content or b"Uid:" in content)
 							 and b"/proc/self/status" in website))):
-				print(colored("[+] '%s' [Vulnerable]" % website, "red"))
+				with open('VULNERABLES_URLs.txt', 'a') as file:
+					file.write("[+] URL: '%s' [Vulnerable]\n" % website)
+				print(colored("[+] URL: '%s' [Vulnerable]" % website, "red"))
 				# print "main() [<a href='function.include'>function.include</a>" not in content
 				# print "\n------------------------------\n%s\n\n" %content
 

